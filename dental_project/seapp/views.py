@@ -42,3 +42,22 @@ class makeReservation(APIView):
         q.save()
         serializer.save()
         return Response(serializer.data , status=status.HTTP_201_CREATED)
+
+
+class EmptyDates(APIView):
+    def get(self , request , format=None):
+        limit_date = datetime.date.today()+ datetime.timedelta(days=30)
+        q1 = WorkTimes.objects.filter(date__gt=datetime.date.today())
+        q2 = q1.filter(date__lte=limit_date)
+        q3 = q2.exclude(reserved =True)
+        q4 = q3.values('date').distinct()
+        serializer = EmptyDateSerializer(q4 , many=True)
+        return Response(serializer.data)
+
+class hours(APIView):
+    def get(self , request , format=None):
+        selected_date = request.query_params.get('date', None)
+        q1 = WorkTimes.objects.filter( date = selected_date)
+        q2 = q1.exclude(reserved =True)
+        serializer = WorkTimesSerializer(q2 , many=True)
+        return Response(serializer.data)
